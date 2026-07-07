@@ -3,6 +3,8 @@ import BaseHead from '../components/BaseHead.astro';
 import Footer from '../components/Footer.astro';
 import Header from '../components/Header.astro';
 import { SITE_DESCRIPTION, SITE_TITLE } from '../consts';
+import { Image } from 'astro:assets';
+import myImage from '../assets/index-pic.jpg';
 ---
 
 <!doctype html>
@@ -14,8 +16,12 @@ import { SITE_DESCRIPTION, SITE_TITLE } from '../consts';
 		<Header />
 		<main>
 			<h1>Halo, Manusia dan Alam!</h1>
+			<Image src={myImage}/>
 			<p>
-				Selamat datang di blog pribadi Gua. Nantinya blog ini akan diisi dengan berbagai tulisan-tulisan tentang apa aja yang gua suka, bisa jadi tentang opini-opini gua mengenai hobi, teknologi, politikm, dan lain-lain. Pada akhirnya ini akan jadi semacam taman dari pikiran Gua yang bisa kalian baca kapan aja.
+				Selamat datang di blog pribadi Gua. Nantinya blog ini akan diisi dengan berbagai tulisan-tulisan tentang apa aja yang gua suka, bisa jadi tentang opini-opini gua mengenai hobi, teknologi, politik, dan lain-lain.
+			</p>
+			<p>
+				Pada akhirnya ini akan jadi semacam taman dari pikiran Gua yang bisa kalian baca kapan aja.
 			</p>
 		</main>
 		<Footer />
