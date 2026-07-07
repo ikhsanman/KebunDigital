@@ -2,7 +2,7 @@
 title: "Ide Pertamaku tentang Web Dev"
 description: "Catatan awal belajar Astro dan Netlify."
 pubDate: "2026-07-07"
-heroImage: "/blog-placeholder-1.jpg"
+heroImage: "../../assets/blog-placeholder-3.jpg"
 ---
 
 Ini adalah awal dari kebun digitalku. Aku baru saja belajar bahwa Astro sangat cepat. 
