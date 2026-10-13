@@ -1,0 +1,169 @@
+---
+import { Image } from 'astro:assets';
+import { getCollection } from 'astro:content';
+import BaseHead from '../../../components/BaseHead.astro';
+import Footer from '../../../components/Footer.astro';
+import FormattedDate from '../../../components/FormattedDate.astro';
+import Header from '../../../components/Header.astro';
+import { SITE_DESCRIPTION, SITE_TITLE } from '../../../consts';
+
+const POSTS_PER_PAGE = 6;
+
+export async function getStaticPaths() {
+	const POSTS_PER_PAGE = 6;
+	const posts = await getCollection('blog');
+	const totalPages = Math.ceil(posts.length / POSTS_PER_PAGE);
+	return Array.from({ length: totalPages }, (_, i) => ({
+		params: { page: String(i + 1) },
+		props: { page: i + 1 },
+	}));
+}
+
+const { page } = Astro.props;
+const posts = (await getCollection('blog')).sort(
+	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
+);
+const paginatedPosts = posts.slice((page - 1) * POSTS_PER_PAGE, page * POSTS_PER_PAGE);
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<BaseHead title={`Blog - Halaman ${page}`} description={SITE_DESCRIPTION} />
+		<style>
+			main {
+				width: 960px;
+			}
+			ul {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 2rem;
+				list-style-type: none;
+				margin: 0;
+				padding: 0;
+			}
+			ul li {
+				width: calc(50% - 1rem);
+			}
+			ul li * {
+				text-decoration: none;
+				transition: 0.2s ease;
+			}
+			ul li:first-child {
+				width: 100%;
+				margin-bottom: 1rem;
+				text-align: center;
+			}
+			ul li:first-child img {
+				width: 100%;
+			}
+			ul li:first-child .title {
+				font-size: 2.369rem;
+			}
+			ul li img {
+				margin-bottom: 0.5rem;
+				border-radius: 12px;
+			}
+			ul li a {
+				display: block;
+			}
+			.title {
+				margin: 0;
+				color: rgb(var(--black));
+				line-height: 1;
+			}
+			.date {
+				margin: 0;
+				color: rgb(var(--gray));
+			}
+			ul li a:hover h4,
+			ul li a:hover .date {
+				color: rgb(var(--accent));
+			}
+			ul a:hover img {
+				box-shadow: var(--box-shadow);
+			}
+			.pagination {
+				display: flex;
+				justify-content: center;
+				gap: 0.5em;
+				margin-top: 2em;
+			}
+			.pagination a,
+			.pagination span {
+				padding: 0.5em 1em;
+				border-radius: 8px;
+				text-decoration: none;
+				color: rgb(var(--black));
+				background: white;
+				box-shadow: var(--box-shadow);
+			}
+			.pagination a:hover {
+				color: var(--accent);
+			}
+			.pagination .current {
+				background: var(--accent);
+				color: white;
+			}
+			:root[data-theme="dark"] .pagination a,
+			:root[data-theme="dark"] .pagination span {
+				background: #1a1d24;
+			}
+			@media (max-width: 720px) {
+				ul {
+					gap: 0.5em;
+				}
+				ul li {
+					width: 100%;
+					text-align: center;
+				}
+				ul li:first-child {
+					margin-bottom: 0;
+				}
+				ul li:first-child .title {
+					font-size: 1.563em;
+				}
+			}
+		</style>
+	</head>
+	<body>
+		<Header />
+		<main>
+			<section>
+				<ul>
+					{
+						paginatedPosts.map((post) => (
+							<li>
+								<a href={`/blog/${post.id}/`}>
+									{post.data.heroImage && (
+										<Image width={720} height={360} src={post.data.heroImage} alt="" />
+									)}
+									<h4 class="title">{post.data.title}</h4>
+									<p class="date">
+										<FormattedDate date={post.data.pubDate} />
+									</p>
+								</a>
+							</li>
+						))
+					}
+				</ul>
+			</section>
+			<nav class="pagination" aria-label="Pagination">
+				{page > 1 && <a href={page === 2 ? '/blog/' : `/blog/page/${page - 1}/`}>Sebelumnya</a>}
+				{
+					Array.from({ length: Math.ceil(posts.length / POSTS_PER_PAGE) }, (_, i) => i + 1).map((p) =>
+						p === page ? (
+							<span class="current">{p}</span>
+						) : (
+							<a href={p === 1 ? '/blog/' : `/blog/page/${p}/`}>{p}</a>
+						),
+					)
+				}
+				{page < Math.ceil(posts.length / POSTS_PER_PAGE) && (
+					<a href={`/blog/page/${page + 1}/`}>Berikutnya</a>
+				)}
+			</nav>
+		</main>
+		<Footer />
+	</body>
+</html>

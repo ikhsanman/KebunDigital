@@ -1,0 +1,77 @@
+---
+import { getCollection } from 'astro:content';
+import BaseHead from '../components/BaseHead.astro';
+import Footer from '../components/Footer.astro';
+import Header from '../components/Header.astro';
+import { SITE_DESCRIPTION, SITE_TITLE } from '../consts';
+
+const posts = await getCollection('blog');
+
+const tagCounts = new Map<string, number>();
+for (const post of posts) {
+	for (const tag of post.data.tags) {
+		tagCounts.set(tag, (tagCounts.get(tag) ?? 0) + 1);
+	}
+}
+
+const tags = Array.from(tagCounts.entries()).sort((a, b) => b[1] - a[1]);
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<BaseHead title={`Tags - ${SITE_TITLE}`} description={SITE_DESCRIPTION} />
+		<style>
+			.tags-grid {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 0.75em;
+				list-style: none;
+				padding: 0;
+				margin: 0;
+			}
+			.tags-grid a {
+				display: inline-block;
+				padding: 0.5em 1em;
+				background: white;
+				border-radius: 999px;
+				text-decoration: none;
+				color: rgb(var(--gray-dark));
+				box-shadow: var(--box-shadow);
+				transition: 0.2s ease;
+			}
+			.tags-grid a:hover {
+				color: var(--accent);
+				transform: translateY(-2px);
+			}
+			:root[data-theme="dark"] .tags-grid a {
+				background: #1a1d24;
+			}
+			.count {
+				font-size: 0.8em;
+				color: rgb(var(--gray));
+				margin-left: 0.25em;
+			}
+		</style>
+	</head>
+	<body>
+		<Header />
+		<main>
+			<h1>Tags</h1>
+			<p>Semua topik yang pernah gua tulis.</p>
+			<ul class="tags-grid">
+				{
+					tags.map(([tag, count]) => (
+						<li>
+							<a href={`/tags/${tag.toLowerCase().replace(/\s+/g, '-')}/`}>
+								{tag}
+								<span class="count">({count})</span>
+							</a>
+						</li>
+					))
+				}
+			</ul>
+		</main>
+		<Footer />
+	</body>
+</html>

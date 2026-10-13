@@ -1,0 +1,248 @@
+---
+import { Image } from 'astro:assets';
+import { getCollection } from 'astro:content';
+import BaseHead from '../components/BaseHead.astro';
+import Footer from '../components/Footer.astro';
+import FormattedDate from '../components/FormattedDate.astro';
+import Header from '../components/Header.astro';
+import { SITE_DESCRIPTION, SITE_TITLE } from '../consts';
+
+const projects = (await getCollection('projects')).sort(
+	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
+);
+
+const statusLabel = {
+	completed: 'Selesai',
+	'in-progress': 'Dalam Pengembangan',
+	'on-hold': 'Ditunda',
+};
+
+const statusClass = {
+	completed: 'status-completed',
+	'in-progress': 'status-in-progress',
+	'on-hold': 'status-on-hold',
+};
+
+const allTags = [...new Set(projects.flatMap((p) => p.data.tags))].sort();
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<BaseHead title={`Projects - ${SITE_TITLE}`} description="Projects yang pernah dan sedang saya kerjakan" />
+		<style>
+			main {
+				width: 960px;
+			}
+			.filter-wrapper {
+				margin-bottom: 2em;
+			}
+			.filter-select {
+				padding: 0.6em 1em;
+				font-size: 0.95em;
+				border: 2px solid rgb(var(--gray-light));
+				border-radius: 8px;
+				background: white;
+				color: rgb(var(--gray-dark));
+				cursor: pointer;
+				outline: none;
+				min-width: 220px;
+				appearance: none;
+				-webkit-appearance: none;
+				background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+				background-repeat: no-repeat;
+				background-position: right 1em center;
+				padding-right: 2.5em;
+				transition: border-color 0.2s ease;
+			}
+			.filter-select:focus {
+				border-color: var(--accent);
+			}
+			:root[data-theme="dark"] .filter-select {
+				background-color: #1a1d24;
+				color: rgb(var(--gray-dark));
+				border-color: rgb(var(--gray-light));
+			}
+			ul {
+				list-style: none;
+				margin: 0;
+				padding: 0;
+				display: flex;
+				flex-direction: column;
+				gap: 2em;
+			}
+			.project-card {
+				display: flex;
+				gap: 1.5em;
+				padding: 1em;
+				border-radius: 12px;
+				background: white;
+				box-shadow: var(--box-shadow);
+				text-decoration: none;
+				color: inherit;
+				transition: transform 0.2s ease;
+			}
+			.project-card:hover {
+				transform: translateY(-4px);
+			}
+			.thumbnail {
+				flex-shrink: 0;
+				width: 240px;
+			}
+			.thumbnail img {
+				width: 100%;
+				height: 160px;
+				object-fit: cover;
+				border-radius: 8px;
+			}
+			.project-info {
+				flex: 1;
+				display: flex;
+				flex-direction: column;
+				gap: 0.5em;
+			}
+			.project-info h2 {
+				margin: 0;
+				font-size: 1.5em;
+				color: rgb(var(--black));
+			}
+			.project-card:hover h2 {
+				color: var(--accent);
+			}
+			.date {
+				color: rgb(var(--gray));
+				font-size: 0.9em;
+			}
+			.description {
+				color: rgb(var(--gray-dark));
+				line-height: 1.6;
+			}
+			.tags {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 0.5em;
+			}
+			.tag {
+				padding: 0.25em 0.75em;
+				background: rgb(var(--gray-light));
+				border-radius: 999px;
+				font-size: 0.8em;
+				color: rgb(var(--gray-dark));
+			}
+			.status {
+				padding: 0.25em 0.75em;
+				border-radius: 999px;
+				font-size: 0.8em;
+				font-weight: 600;
+			}
+			.status-completed {
+				background: #dcfce7;
+				color: #166534;
+			}
+			.status-in-progress {
+				background: #fef9c3;
+				color: #854d0e;
+			}
+			.status-on-hold {
+				background: #fee2e2;
+				color: #991b1b;
+			}
+			.no-results {
+				text-align: center;
+				color: rgb(var(--gray));
+				padding: 2em 0;
+			}
+			@media (max-width: 720px) {
+				.project-card {
+					flex-direction: column;
+				}
+				.thumbnail {
+					width: 100%;
+				}
+				.thumbnail img {
+					height: 200px;
+				}
+			}
+		</style>
+	</head>
+	<body>
+		<Header />
+		<main>
+			<h1>Projects</h1>
+			<p>Daftar projects yang pernah dan sedang gua kerjakan.</p>
+			<div class="filter-wrapper">
+				<select class="filter-select" id="filter-select" aria-label="Filter projects">
+					<option value="all">Semua</option>
+					<optgroup label="Status">
+						<option value="completed">Selesai</option>
+						<option value="in-progress">Dalam Pengembangan</option>
+						<option value="on-hold">Ditunda</option>
+					</optgroup>
+					<optgroup label="Kategori">
+						{allTags.map((tag) => (
+							<option value={tag.toLowerCase().replace(/\s+/g, '-')}>{tag}</option>
+						))}
+					</optgroup>
+				</select>
+			</div>
+			<ul id="project-list">
+				{
+					projects.map((project) => (
+						<li
+							data-status={project.data.status}
+							data-tags={project.data.tags.map((t) => t.toLowerCase().replace(/\s+/g, '-')).join(' ')}
+						>
+							<a href={`/projects/${project.id}/`} class="project-card">
+								<div class="thumbnail">
+									{project.data.heroImage && (
+										<Image width={480} height={320} src={project.data.heroImage} alt="" />
+									)}
+								</div>
+								<div class="project-info">
+									<h2>{project.data.title}</h2>
+									<span class="date">
+										<FormattedDate date={project.data.pubDate} />
+									</span>
+									<span class="description">{project.data.description}</span>
+									<div class="tags">
+										<span class={`status ${statusClass[project.data.status]}`}>
+											{statusLabel[project.data.status]}
+										</span>
+										{project.data.tags.map((tag) => <span class="tag">{tag}</span>)}
+									</div>
+								</div>
+							</a>
+						</li>
+					))
+				}
+			</ul>
+			<p class="no-results" id="no-results" style="display: none;">
+				Tidak ada project dengan kategori ini.
+			</p>
+		</main>
+		<Footer />
+		<script is:inline>
+			const filterSelect = document.getElementById('filter-select');
+			const projectList = document.getElementById('project-list');
+			const noResults = document.getElementById('no-results');
+			const items = Array.from(projectList?.children ?? []);
+
+			filterSelect?.addEventListener('change', () => {
+				const filter = filterSelect.value;
+				let visibleCount = 0;
+
+				items.forEach((item) => {
+					const status = item.dataset.status ?? '';
+					const tags = item.dataset.tags ?? '';
+					const match = filter === 'all' || status === filter || tags.includes(filter);
+					item.style.display = match ? '' : 'none';
+					if (match) visibleCount++;
+				});
+
+				if (noResults) {
+					noResults.style.display = visibleCount === 0 ? '' : 'none';
+				}
+			});
+		</script>
+	</body>
+</html>

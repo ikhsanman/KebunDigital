@@ -10,6 +10,11 @@ import { SITE_DESCRIPTION, SITE_TITLE } from '../../consts';
 const posts = (await getCollection('blog')).sort(
 	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
 );
+
+const POSTS_PER_PAGE = 6;
+const totalPages = Math.ceil(posts.length / POSTS_PER_PAGE);
+const currentPage = 1;
+const paginatedPosts = posts.slice((currentPage - 1) * POSTS_PER_PAGE, currentPage * POSTS_PER_PAGE);
 ---
 
 <!doctype html>
@@ -19,6 +24,30 @@ const posts = (await getCollection('blog')).sort(
 		<style>
 			main {
 				width: 960px;
+			}
+			.search-container {
+				margin-bottom: 2em;
+				display: flex;
+				justify-content: center;
+			}
+			.search-input {
+				width: 100%;
+				max-width: 400px;
+				padding: 0.75em 1em;
+				font-size: 1em;
+				border: 2px solid rgb(var(--gray-light));
+				border-radius: 999px;
+				background: white;
+				color: rgb(var(--gray-dark));
+				outline: none;
+				transition: border-color 0.2s ease;
+			}
+			.search-input:focus {
+				border-color: var(--accent);
+			}
+			:root[data-theme="dark"] .search-input {
+				background: #1a1d24;
+				color: rgb(var(--gray-dark));
 			}
 			ul {
 				display: flex;
@@ -69,6 +98,40 @@ const posts = (await getCollection('blog')).sort(
 			ul a:hover img {
 				box-shadow: var(--box-shadow);
 			}
+			.no-results {
+				text-align: center;
+				color: rgb(var(--gray));
+				padding: 2em 0;
+			}
+			.pagination {
+				display: flex;
+				justify-content: center;
+				gap: 0.5em;
+				margin-top: 2em;
+			}
+			.pagination a,
+			.pagination span {
+				padding: 0.5em 1em;
+				border-radius: 8px;
+				text-decoration: none;
+				color: rgb(var(--black));
+				background: white;
+				box-shadow: var(--box-shadow);
+			}
+			.pagination a:hover {
+				color: var(--accent);
+			}
+			.pagination .current {
+				background: var(--accent);
+				color: white;
+			}
+			:root[data-theme="dark"] .pagination a,
+			:root[data-theme="dark"] .pagination span {
+				background: #1a1d24;
+			}
+			:root[data-theme="dark"] .pagination .current {
+				background: var(--accent);
+			}
 			@media (max-width: 720px) {
 				ul {
 					gap: 0.5em;
@@ -89,10 +152,18 @@ const posts = (await getCollection('blog')).sort(
 	<body>
 		<Header />
 		<main>
+			<div class="search-container">
+				<input
+					type="search"
+					class="search-input"
+					placeholder="Cari artikel..."
+					aria-label="Cari artikel"
+				/>
+			</div>
 			<section>
-				<ul>
+				<ul id="post-list">
 					{
-						posts.map((post) => (
+						paginatedPosts.map((post) => (
 							<li>
 								<a href={`/blog/${post.id}/`}>
 									{post.data.heroImage && (
@@ -107,8 +178,49 @@ const posts = (await getCollection('blog')).sort(
 						))
 					}
 				</ul>
+				<p class="no-results" id="no-results" style="display: none;">
+					Tidak ada artikel yang ditemukan.
+				</p>
 			</section>
+			{
+				totalPages > 1 && (
+					<nav class="pagination" aria-label="Pagination">
+						{
+							Array.from({ length: totalPages }, (_, i) => i + 1).map((page) =>
+								page === currentPage ? (
+									<span class="current">{page}</span>
+								) : (
+									<a href={`/blog/page/${page}/`}>{page}</a>
+								),
+							)
+						}
+					</nav>
+				)
+			}
 		</main>
 		<Footer />
+		<script is:inline>
+			const searchInput = document.querySelector('.search-input');
+			const postList = document.getElementById('post-list');
+			const noResults = document.getElementById('no-results');
+			const posts = Array.from(postList?.children ?? []);
+
+			searchInput?.addEventListener('input', () => {
+				const query = searchInput.value.toLowerCase();
+				let visibleCount = 0;
+
+				posts.forEach((post) => {
+					const title = post.querySelector('.title')?.textContent?.toLowerCase() ?? '';
+					const date = post.querySelector('.date')?.textContent?.toLowerCase() ?? '';
+					const match = title.includes(query) || date.includes(query);
+					post.style.display = match ? '' : 'none';
+					if (match) visibleCount++;
+				});
+
+				if (noResults) {
+					noResults.style.display = visibleCount === 0 ? '' : 'none';
+				}
+			});
+		</script>
 	</body>
 </html>
