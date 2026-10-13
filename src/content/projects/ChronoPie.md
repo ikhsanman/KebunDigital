@@ -20,5 +20,5 @@ Membuat aplikasi mobile untuk melihat waktu sebagai sesuatu yang visual agar age
 ### Teknologi yang Digunakan
 
 - React Native
-- Type Script
+- TypeScript
 - Expo Go
