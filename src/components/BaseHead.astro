@@ -50,3 +50,22 @@ const { title, description, image = FallbackImage } = Astro.props;
 
 <!-- Twitter -->
 <meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content={title} />
+<meta name="twitter:description" content={description} />
+<meta name="twitter:image" content={new URL(image.src, Astro.url)} />
+
+<!-- Author -->
+<meta name="author" content="Rahsan" />
+
+<!-- Structured Data (JSON-LD) -->
+<script type="application/ld+json" set:html={JSON.stringify({
+	'@context': 'https://schema.org',
+	'@type': 'Blog',
+	'name': SITE_TITLE,
+	'description': description,
+	'url': Astro.url,
+	'author': {
+		'@type': 'Person',
+		'name': 'Rahsan',
+	},
+})} />
